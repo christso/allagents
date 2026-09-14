@@ -20,6 +20,8 @@ export interface ProfileAdapterCapabilities {
   readonly settings: boolean;
   readonly status: boolean;
   readonly cleanup: boolean;
+  /** Recursively remove client-created artifacts only when the selected root is wholly disposable. */
+  readonly recursiveRootCleanup: boolean;
 }
 
 export interface ProfileLauncherInvocation {
@@ -107,4 +109,7 @@ export interface ProfileAdapter {
     context: ProfileClientContext,
     input: ProfileSerializationInput,
   ): ProfilePlannedFile | null;
+
+  /** Remove adapter-known generated files before generic empty-directory cleanup. */
+  prepareRootCleanup?(context: ProfileClientContext): Promise<void>;
 }

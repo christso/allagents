@@ -29,6 +29,7 @@ const CAPABILITIES = Object.freeze({
   settings: false,
   status: true,
   cleanup: true,
+  recursiveRootCleanup: true,
 });
 
 function assertPiContext(context: ProfileClientContext): void {

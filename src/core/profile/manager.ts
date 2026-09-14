@@ -217,8 +217,15 @@ async function applyOneStep(
       if (!step.context) throw new Error('Profile root plan has no selected client context');
       const expectedRoot =
         step.context.operationContext.roots?.config ?? step.context.root;
-      await removeOwnedManagedRoot(step.path, expectedRoot);
-      return { status: 'removed' };
+      const adapter = internal.adapters.get(step.public.client);
+      if (!adapter) throw new Error(`Profile root plan has no adapter for ${step.public.client}`);
+      if (adapter.capabilities.recursiveRootCleanup) {
+        await removeOwnedManagedRoot(step.path, expectedRoot);
+        return { status: 'removed' };
+      }
+      await assertSafeProfilePath(expectedRoot, step.path);
+      await adapter.prepareRootCleanup?.(step.context);
+      return { status: (await removeEmptyManagedRoot(step.path)) ? 'removed' : 'retained' };
     }
     await assertSafeProfilePath(step.root, step.path);
     await mkdir(step.path, { recursive: true, mode: 0o700 });

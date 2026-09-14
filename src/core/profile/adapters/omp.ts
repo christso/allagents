@@ -31,6 +31,7 @@ const CAPABILITIES = Object.freeze({
   settings: false,
   status: true,
   cleanup: true,
+  recursiveRootCleanup: true,
 });
 const MCP_SCHEMA_URL =
   'https://raw.githubusercontent.com/can1357/oh-my-pi/main/packages/coding-agent/src/config/mcp-schema.json';

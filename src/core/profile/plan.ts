@@ -1118,13 +1118,25 @@ export async function planProfileOperation(
 
       const serializationInput = { plugins: [...orderedNative.map((entry) => entry.plugin), ...filePlugins], settings: declaredClient.settings, ...(declaration.mcpServers && { mcpServers: declaration.mcpServers }) };
       if (Object.keys(declaredClient.settings).length > 0 && !adapter.capabilities.settings) throw new Error(`Profile client '${client}' does not support settings`);
+      const hasMcp = hasSelectedMcp(declaration, client);
+      if (hasMcp && !adapter.capabilities.mcp) throw new Error(`Profile client '${client}' does not support MCP configuration`);
       const settings = adapter.serializeSettings(context, serializationInput);
+      const mcp = adapter.serializeMcp(context, serializationInput);
+      if (hasMcp && !settings && !mcp) throw new Error(`Profile client '${client}' did not serialize its MCP configuration`);
       if (settings) {
         const planned = await planManagedFile({ client, kind: 'settings', root: context.root, path: settings.path, content: settings.content, mode: settings.mode, priorState });
-        steps.push(planned); desiredKeys.add(planned.relationship.key);
+        steps.push(hasMcp && !mcp
+          ? {
+              ...planned,
+              public: {
+                ...planned.public,
+                detail: { mcpServers: mcpDisclosures(declaration, client) },
+              },
+              context,
+            }
+          : planned);
+        desiredKeys.add(planned.relationship.key);
       }
-      if (hasSelectedMcp(declaration, client) && !adapter.capabilities.mcp) throw new Error(`Profile client '${client}' does not support MCP configuration`);
-      const mcp = adapter.serializeMcp(context, serializationInput);
       if (mcp) {
         const planned = await planManagedFile({ client, kind: 'mcp', root: context.root, path: mcp.path, content: mcp.content, mode: mcp.mode, priorState });
         steps.push({

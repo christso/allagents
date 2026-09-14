@@ -145,6 +145,7 @@ class MemoryProfileAdapter implements ProfileAdapter {
     settings: false,
     status: true,
     cleanup: true,
+    recursiveRootCleanup: true,
   };
   readonly nativeClient: MemoryNativeClient;
   mcpInspections = 0;
